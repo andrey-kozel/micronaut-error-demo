@@ -30,7 +30,8 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 @MicronautTest
 class FileUploadControllerTests {
 
-  private static final String ANY_BIG_FILE = StringUtils.repeat("Data", 20000000);
+  private static final byte[] ANY_BIG_FILE = StringUtils.repeat("Data", 20000000)
+    .getBytes(StandardCharsets.UTF_8);
 
   @Inject
   @Client("/api/storage")
@@ -56,7 +57,7 @@ class FileUploadControllerTests {
       .addPart("encryptionKey", "MAIL")
       .addPart("retentionTime", "1")
       .addPart("tags", "{}")
-      .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE.getBytes(StandardCharsets.UTF_8))
+      .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE)
       .build();
     final HttpResponse response = client
       .toBlocking()
@@ -70,7 +71,7 @@ class FileUploadControllerTests {
   @Test
   @Property(name = "micronaut.server.multipart.disk", value = "true")
   public void outOfMemoryOn600XmX() {
-    IntStream.range(0, 15)
+    IntStream.range(0, 30)
       .forEach(attempt -> {
         final MultipartBody multipartBody = MultipartBody
           .builder()
@@ -80,14 +81,13 @@ class FileUploadControllerTests {
           .addPart("encryptionKey", "MAIL")
           .addPart("retentionTime", "1")
           .addPart("tags", "{}")
-          .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE.getBytes(StandardCharsets.UTF_8))
+          .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE)
           .build();
         final HttpResponse response = client
           .toBlocking()
           .exchange(HttpRequest.POST("/fullPath", multipartBody)
             .contentType(MediaType.MULTIPART_FORM_DATA_TYPE)
             .accept(MediaType.APPLICATION_JSON_TYPE), String.class);
-
         assertThat(response.getStatus().getCode()).isEqualTo(200);
       });
   }
@@ -104,7 +104,7 @@ class FileUploadControllerTests {
       .addTextBody("tags", "{}")
       .addTextBody("retentionTime", "12")
       .addTextBody("encryptionKey", "key")
-      .addBinaryBody("file", ANY_BIG_FILE.getBytes(StandardCharsets.UTF_8), contentType, "any-path.txt");
+      .addBinaryBody("file", ANY_BIG_FILE, contentType, "any-path.txt");
 
     request.setEntity(multipartEntityBuilder.build());
     execute(request);
@@ -112,8 +112,8 @@ class FileUploadControllerTests {
 
   @Test
   @Property(name = "micronaut.server.multipart.disk", value = "true")
-  public void apacheClientOutOfMemoryOn600Xmx() {
-    IntStream.range(0, 15)
+  public void apacheClientOutOfMemoryOn500Xmx() {
+    IntStream.range(0, 30)
       .forEach(attempt -> {
         final String url = "http://localhost:35012/api/storage/fullPath";
         final ContentType contentType = ContentType.TEXT_PLAIN;
@@ -125,7 +125,7 @@ class FileUploadControllerTests {
           .addTextBody("tags", "{}")
           .addTextBody("retentionTime", "12")
           .addTextBody("encryptionKey", "key")
-          .addBinaryBody("file", ANY_BIG_FILE.getBytes(StandardCharsets.UTF_8), contentType, "any-path.txt");
+          .addBinaryBody("file", ANY_BIG_FILE, contentType, "any-path.txt");
 
         request.setEntity(multipartEntityBuilder.build());
         execute(request);
