@@ -1,0 +1,16 @@
+Configutation:
+  name: Default
+  status: warn
+  Appenders:
+    Console:
+      name: JsonAppender
+      target: SYSTEM_OUT
+      immediateFlush: false
+      JsonTemplateLayout:
+        eventTemplateUri: classpath:SpanningJsonEventLayoutV1.json
+
+  Loggers:
+    AsyncRoot:
+      level: info
+      AppenderRef:
+        - ref: JsonAppender
