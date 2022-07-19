@@ -49,23 +49,26 @@ class FileUploadControllerTests {
 
   @Test
   public void micronautHttpClientWorksAsExpected() {
-    final MultipartBody multipartBody = MultipartBody
-      .builder()
-      .addPart("tenantId", "1")
-      .addPart("resourceId", "1")
-      .addPart("objectType", "MAIL")
-      .addPart("encryptionKey", "MAIL")
-      .addPart("retentionTime", "1")
-      .addPart("tags", "{}")
-      .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE)
-      .build();
-    final HttpResponse response = client
-      .toBlocking()
-      .exchange(HttpRequest.POST("/fullPath", multipartBody)
-        .contentType(MediaType.MULTIPART_FORM_DATA_TYPE)
-        .accept(MediaType.APPLICATION_JSON_TYPE), String.class);
+    IntStream.range(0, 30)
+      .forEach(attempt -> {
+        final MultipartBody multipartBody = MultipartBody
+          .builder()
+          .addPart("tenantId", "1")
+          .addPart("resourceId", "1")
+          .addPart("objectType", "MAIL")
+          .addPart("encryptionKey", "MAIL")
+          .addPart("retentionTime", "1")
+          .addPart("tags", "{}")
+          .addPart("file", "file.json", MediaType.TEXT_PLAIN_TYPE, ANY_BIG_FILE)
+          .build();
+        final HttpResponse response = client
+          .toBlocking()
+          .exchange(HttpRequest.POST("/fullPath", multipartBody)
+            .contentType(MediaType.MULTIPART_FORM_DATA_TYPE)
+            .accept(MediaType.APPLICATION_JSON_TYPE), String.class);
 
-    assertThat(response.getStatus().getCode()).isEqualTo(200);
+        assertThat(response.getStatus().getCode()).isEqualTo(200);
+      });
   }
 
   @Test
@@ -94,20 +97,23 @@ class FileUploadControllerTests {
 
   @Test
   public void apacheClientThrowsLeakException() {
-    final String url = "http://localhost:35012/api/storage/fullPath";
-    final ContentType contentType = ContentType.TEXT_PLAIN;
-    final HttpPost request = new HttpPost(url);
-    final MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create()
-      .addTextBody("tenantId", "1")
-      .addTextBody("objectType", "MAIL")
-      .addTextBody("resourceId", "2")
-      .addTextBody("tags", "{}")
-      .addTextBody("retentionTime", "12")
-      .addTextBody("encryptionKey", "key")
-      .addBinaryBody("file", ANY_BIG_FILE, contentType, "any-path.txt");
+    IntStream.range(0, 30)
+      .forEach(attempt -> {
+        final String url = "http://localhost:35012/api/storage/fullPath";
+        final ContentType contentType = ContentType.TEXT_PLAIN;
+        final HttpPost request = new HttpPost(url);
+        final MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create()
+          .addTextBody("tenantId", "1")
+          .addTextBody("objectType", "MAIL")
+          .addTextBody("resourceId", "2")
+          .addTextBody("tags", "{}")
+          .addTextBody("retentionTime", "12")
+          .addTextBody("encryptionKey", "key")
+          .addBinaryBody("file", ANY_BIG_FILE, contentType, "any-path.txt");
 
-    request.setEntity(multipartEntityBuilder.build());
-    execute(request);
+        request.setEntity(multipartEntityBuilder.build());
+        execute(request);
+      });
   }
 
   @Test
